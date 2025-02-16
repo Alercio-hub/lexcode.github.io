@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Indemnização Resultante do Contrato de Trabalho em Moçambique</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      padding: 20px 30px;
+      max-width: 700px;
+      margin: auto;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label, select, input, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+    }
+    button {
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .result {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    p.note {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Indemnização Resultante do Contrato de Trabalho em Moçambique</h1>
+    <label for="tipo-indemnizacao">Escolha o tipo de indemnização:</label>
+    <select id="tipo-indemnizacao" onchange="updateMainForm()">
+      <option value="">Selecione...</option>
+      <option value="trabalhador">Rescisão por iniciativa do trabalhador</option>
+      <option value="empregador">Rescisão por iniciativa do empregador</option>
+      <option value="despedimento">Despedimento ilícito</option>
+    </select>
+    
+    <!-- Área onde o formulário dinâmico será inserido -->
+    <div id="dynamic-form"></div>
+    
+    <!-- Área para exibição do resultado -->
+    <div id="resultado" class="result"></div>
+    
+    <p class="note">* Essa calculadora não substitui a necessidade de consulta a um advogado.</p>
+  </div>
+  
+  <script>
+    /* Função principal que atualiza o formulário conforme o tipo de indemnização selecionado */
+    function updateMainForm(){
+      var tipo = document.getElementById("tipo-indemnizacao").value;
+      var form = document.getElementById("dynamic-form");
+      form.innerHTML = "";
+      document.getElementById("resultado").innerHTML = "";
+      if(tipo === "trabalhador"){
+         renderTrabalhador();
+      } else if(tipo === "empregador"){
+         renderEmpregador();
+      } else if(tipo === "despedimento"){
+         renderDespedimento();
+      }
+    }
+    
+    /* ================================
+       Ramo: Rescisão por iniciativa do trabalhador 
+       ================================ */
+    function renderTrabalhador(){
+      var form = document.getElementById("dynamic-form");
+      var html = '<label for="trabalhador-contrato">Escolha o tipo de contrato:</label>'+
+                 '<select id="trabalhador-contrato" onchange="renderTrabalhadorSubform()">'+
+                   '<option value="">Selecione...</option>'+
+                   '<option value="tempo-indeterminado">Por tempo indeterminado</option>'+
+                   '<option value="prazo-certo">A prazo certo</option>'+
+                 '</select>'+
+                 '<div id="trabalhador-subform"></div>';
+      form.innerHTML = html;
+    }
+    
+    function renderTrabalhadorSubform(){
+      var tipo = document.getElementById("trabalhador-contrato").value;
+      var subform = document.getElementById("trabalhador-subform");
+      subform.innerHTML = "";
+      if(tipo === "tempo-indeterminado"){
+         var html = '<label for="trabalhouAnoWorker">Trabalhou pelo menos um ano?</label>'+
+                    '<select id="trabalhouAnoWorker" onchange="renderTrabalhadorTI()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="sim">Sim</option>'+
+                      '<option value="nao">Não</option>'+
+                    '</select>'+
+                    '<div id="trabalhouAnoWorkerSub"></div>';
+         subform.innerHTML = html;
+      } else if(tipo === "prazo-certo"){
+         var html = '<label for="salarioWorkerTP">Salário Mensal:</label>'+
+                    '<input type="number" id="salarioWorkerTP" placeholder="Insira seu salário mensal">'+
+                    '<label for="tempoTipoWorkerTP">Tempo restante para expiração do contrato:</label>'+
+                    '<select id="tempoTipoWorkerTP" onchange="renderWorkerTPSub()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="anos">Anos</option>'+
+                      '<option value="meses">Meses</option>'+
+                    '</select>'+
+                    '<div id="workerTPSub"></div>'+
+                    '<button onclick="calculateWorkerTP()">Calcular</button>';
+         subform.innerHTML = html;
+      }
+    }
+    
+    function renderTrabalhadorTI(){
+      var respondeu = document.getElementById("trabalhouAnoWorker").value;
+      var container = document.getElementById("trabalhouAnoWorkerSub");
+      container.innerHTML = "";
+      if(respondeu === "sim"){
+         var html = '<label for="salarioWorker">Salário Mensal:</label>'+
+                    '<input type="number" id="salarioWorker" placeholder="Insira seu salário mensal">'+
+                    '<label for="anosWorker">Anos de serviço:</label>'+
+                    '<input type="number" id="anosWorker" placeholder="Insira os anos de serviço">'+
+                    '<label for="mesesAdicionaisWorker">Trabalhou meses adicionais que não completam um ano?</label>'+
+                    '<select id="mesesAdicionaisWorker" onchange="renderWorkerExtraMonths()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="sim">Sim</option>'+
+                      '<option value="nao">Não</option>'+
+                    '</select>'+
+                    '<div id="workerExtraMonthsContainer"></div>'+
+                    '<label for="feriasWorker">Tem férias não gozadas?</label>'+
+                    '<select id="feriasWorker" onchange="renderWorkerFerias()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="sim">Sim</option>'+
+                      '<option value="nao">Não</option>'+
+                    '</select>'+
+                    '<div id="workerFeriasContainer"></div>'+
+                    '<button onclick="calculateWorkerTI()">Calcular</button>';
+         container.innerHTML = html;
+      } else if(respondeu === "nao"){
+         var html = '<label for="mesesWorkerMenorAno">Quantos meses trabalhou?</label>'+
+                    '<input type="number" id="mesesWorkerMenorAno" placeholder="Insira os meses trabalhados">'+
+                    '<label for="salarioWorker">Salário Mensal:</label>'+
+                    '<input type="number" id="salarioWorker" placeholder="Insira seu salário mensal">'+
+                    '<button onclick="calculateWorkerTI()">Calcular</button>';
+         container.innerHTML = html;
+      }
+    }
+    
+    function renderWorkerExtraMonths(){
+      var sel = document.getElementById("mesesAdicionaisWorker").value;
+      var container = document.getElementById("workerExtraMonthsContainer");
+      container.innerHTML = "";
+      if(sel === "sim"){
+         container.innerHTML = '<label for="mesesExtrasWorker">Coloque os meses adicionais:</label>'+
+                               '<input type="number" id="mesesExtrasWorker" placeholder="Meses adicionais">';
+      }
+    }
+    
+    function renderWorkerFerias(){
+      var sel = document.getElementById("feriasWorker").value;
+      var container = document.getElementById("workerFeriasContainer");
+      container.innerHTML = "";
+      if(sel === "sim"){
+         container.innerHTML = '<label for="diasFeriasWorker">Quantos dias de férias não gozadas?</label>'+
+                               '<input type="number" id="diasFeriasWorker" placeholder="Dias de férias">';
+      }
+    }
+    
+    function renderWorkerTPSub(){
+      var tipo = document.getElementById("tempoTipoWorkerTP").value;
+      var container = document.getElementById("workerTPSub");
+      container.innerHTML = "";
+      if(tipo === "anos"){
+         container.innerHTML = '<label for="anosWorkerTP">Anos restantes:</label>'+
+                               '<input type="number" id="anosWorkerTP" placeholder="Insira os anos restantes">'+
+                               '<label for="mesesAdicionaisWorkerTP">Para além desses anos, faltam alguns meses?</label>'+
+                               '<select id="mesesAdicionaisWorkerTP" onchange="renderWorkerTPExtra()">'+
+                                 '<option value="">Selecione...</option>'+
+                                 '<option value="sim">Sim</option>'+
+                                 '<option value="nao">Não</option>'+
+                               '</select>'+
+                               '<div id="workerTPExtraContainer"></div>';
+      } else if(tipo === "meses"){
+         container.innerHTML = '<label for="mesesWorkerTPMeses">Meses restantes:</label>'+
+                               '<input type="number" id="mesesWorkerTPMeses" placeholder="Insira os meses restantes">';
+      }
+    }
+    
+    function renderWorkerTPExtra(){
+      var sel = document.getElementById("mesesAdicionaisWorkerTP").value;
+      var container = document.getElementById("workerTPExtraContainer");
+      container.innerHTML = "";
+      if(sel === "sim"){
+         container.innerHTML = '<label for="mesesWorkerTPExtra">Meses adicionais:</label>'+
+                               '<input type="number" id="mesesWorkerTPExtra" placeholder="Meses adicionais">';
+      }
+    }
+    
+    /* ================================
+       Ramo: Rescisão por iniciativa do empregador 
+       ================================ */
+    function renderEmpregador(){
+      var form = document.getElementById("dynamic-form");
+      var html = '<label for="salarioMinimoEmp">Salário mínimo do setor:</label>'+
+                 '<input type="number" id="salarioMinimoEmp" placeholder="Insira o salário mínimo">'+
+                 '<label for="empregador-contrato">Escolha o tipo de contrato:</label>'+
+                 '<select id="empregador-contrato" onchange="renderEmpregadorSubform()">'+
+                   '<option value="">Selecione...</option>'+
+                   '<option value="tempo-indeterminado">Por tempo indeterminado</option>'+
+                   '<option value="prazo-certo">A prazo certo</option>'+
+                 '</select>'+
+                 '<div id="empregador-subform"></div>';
+      form.innerHTML = html;
+    }
+    
+    function renderEmpregadorSubform(){
+      var tipo = document.getElementById("empregador-contrato").value;
+      var subform = document.getElementById("empregador-subform");
+      subform.innerHTML = "";
+      if(tipo === "tempo-indeterminado"){
+         var html = '<label for="salarioEmpTI">Salário Mensal:</label>'+
+                    '<input type="number" id="salarioEmpTI" placeholder="Insira seu salário mensal">'+
+                    '<label for="trabalhouAnoEmp">Trabalhou pelo menos um ano?</label>'+
+                    '<select id="trabalhouAnoEmp" onchange="renderEmpregadorTI()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="sim">Sim</option>'+
+                      '<option value="nao">Não</option>'+
+                    '</select>'+
+                    '<div id="empregador-TI-sub"></div>';
+         subform.innerHTML = html;
+      } else if(tipo === "prazo-certo"){
+         var html = '<label for="salarioEmpTP">Salário Mensal:</label>'+
+                    '<input type="number" id="salarioEmpTP" placeholder="Insira seu salário mensal">'+
+                    '<label for="tempoTipoEmpTP">Tempo restante para expiração do contrato:</label>'+
+                    '<select id="tempoTipoEmpTP" onchange="renderEmpTPSub()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="anos">Anos</option>'+
+                      '<option value="meses">Meses</option>'+
+                    '</select>'+
+                    '<div id="empTPSub"></div>'+
+                    '<button onclick="calculateEmpTP()">Calcular</button>';
+         subform.innerHTML = html;
+      }
+    }
+    
+    function renderEmpregadorTI(){
+      var respondeu = document.getElementById("trabalhouAnoEmp").value;
+      var container = document.getElementById("empregador-TI-sub");
+      container.innerHTML = "";
+      if(respondeu === "sim"){
+         var html = '<label for="anosEmp">Anos de serviço:</label>'+
+                    '<input type="number" id="anosEmp" placeholder="Insira os anos de serviço">'+
+                    '<label for="mesesAdicionaisEmp">Trabalhou meses adicionais que não completam um ano?</label>'+
+                    '<select id="mesesAdicionaisEmp" onchange="renderEmpExtraMonths()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="sim">Sim</option>'+
+                      '<option value="nao">Não</option>'+
+                    '</select>'+
+                    '<div id="empExtraMonthsContainer"></div>'+
+                    '<button onclick="calculateEmpTI()">Calcular</button>';
+         container.innerHTML = html;
+      } else if(respondeu === "nao"){
+         var html = '<label for="mesesEmpMenorAno">Quantos meses trabalhou?</label>'+
+                    '<input type="number" id="mesesEmpMenorAno" placeholder="Insira os meses trabalhados">'+
+                    '<button onclick="calculateEmpTI()">Calcular</button>';
+         container.innerHTML = html;
+      }
+    }
+    
+    function renderEmpExtraMonths(){
+      var sel = document.getElementById("mesesAdicionaisEmp").value;
+      var container = document.getElementById("empExtraMonthsContainer");
+      container.innerHTML = "";
+      if(sel === "sim"){
+         container.innerHTML = '<label for="mesesEmpExtra">Meses adicionais:</label>'+
+                               '<input type="number" id="mesesEmpExtra" placeholder="Meses adicionais">';
+      }
+    }
+    
+    function renderEmpTPSub(){
+      var tipo = document.getElementById("tempoTipoEmpTP").value;
+      var container = document.getElementById("empTPSub");
+      container.innerHTML = "";
+      if(tipo === "anos"){
+         container.innerHTML = '<label for="anosEmpTP">Anos restantes:</label>'+
+                               '<input type="number" id="anosEmpTP" placeholder="Insira os anos restantes">'+
+                               '<label for="mesesAdicionaisEmpTP">Para além desses anos, faltam alguns meses?</label>'+
+                               '<select id="mesesAdicionaisEmpTP" onchange="renderEmpTPExtra()">'+
+                                 '<option value="">Selecione...</option>'+
+                                 '<option value="sim">Sim</option>'+
+                                 '<option value="nao">Não</option>'+
+                               '</select>'+
+                               '<div id="empTPExtraContainer"></div>';
+      } else if(tipo === "meses"){
+         container.innerHTML = '<label for="mesesEmpTPMeses">Meses restantes:</label>'+
+                               '<input type="number" id="mesesEmpTPMeses" placeholder="Insira os meses restantes">';
+      }
+    }
+    
+    function renderEmpTPExtra(){
+      var sel = document.getElementById("mesesAdicionaisEmpTP").value;
+      var container = document.getElementById("empTPExtraContainer");
+      container.innerHTML = "";
+      if(sel === "sim"){
+         container.innerHTML = '<label for="mesesEmpTPExtra">Meses adicionais:</label>'+
+                               '<input type="number" id="mesesEmpTPExtra" placeholder="Meses adicionais">';
+      }
+    }
+    
+    /* ================================
+       Ramo: Despedimento ilícito 
+       ================================ */
+    function renderDespedimento(){
+      var form = document.getElementById("dynamic-form");
+      var html = '<label for="despedimentoEscolha">Deseja ser reintegrado ou receber indemnização?</label>'+
+                 '<select id="despedimentoEscolha" onchange="renderDespedimentoSubform()">'+
+                   '<option value="">Selecione...</option>'+
+                   '<option value="indemnizacao">Indemnização</option>'+
+                   '<option value="reintegracao">Reintegração</option>'+
+                 '</select>'+
+                 '<div id="despedimento-subform"></div>';
+      form.innerHTML = html;
+    }
+    
+    function renderDespedimentoSubform(){
+      var escolha = document.getElementById("despedimentoEscolha").value;
+      var container = document.getElementById("despedimento-subform");
+      container.innerHTML = "";
+      if(escolha === "indemnizacao"){
+         var html = '<label for="salarioDespedimento">Salário Mensal:</label>'+
+                    '<input type="number" id="salarioDespedimento" placeholder="Insira seu salário mensal">'+
+                    '<label for="tempoTipoDespedimento">Tempo restante para expiração do contrato:</label>'+
+                    '<select id="tempoTipoDespedimento" onchange="renderDespedimentoTPSub()">'+
+                      '<option value="">Selecione...</option>'+
+                      '<option value="anos">Anos</option>'+
+                      '<option value="meses">Meses</option>'+
+                    '</select>'+
+                    '<div id="despedimentoTPSub"></div>'+
+                    '<button onclick="calculateDespedimentoIndemnizacao()">Calcular</button>';
+         container.innerHTML = html;
+      } else if(escolha === "reintegracao"){
+         var html = '<label for="salarioReintegracao">Salário Mensal:</label>'+
+                    '<input type="number" id="salarioReintegracao" placeholder="Insira seu salário">'+
+                    '<label for="tempoDespedimentoReintegracao">Tempo desde o despedimento (em meses):</label>'+
+                    '<input type="number" id="tempoDespedimentoReintegracao" placeholder="Insira os meses">'+
+                    '<button onclick="calculateReintegracao()">Calcular</button>';
+         container.innerHTML = html;
+      }
+    }
+    
+    function renderDespedimentoTPSub(){
+      var tipo = document.getElementById("tempoTipoDespedimento").value;
+      var container = document.getElementById("despedimentoTPSub");
+      container.innerHTML = "";
+      if(tipo === "anos"){
+         container.innerHTML = '<label for="anosDespedimento">Anos restantes:</label>'+
+                               '<input type="number" id="anosDespedimento" placeholder="Insira os anos restantes">'+
+                               '<label for="mesesAdicionaisDespedimento">Para além desses anos, faltam alguns meses?</label>'+
+                               '<select id="mesesAdicionaisDespedimento" onchange="renderDespedimentoExtra()">'+
+                                 '<option value="">Selecione...</option>'+
+                                 '<option value="sim">Sim</option>'+
+                                 '<option value="nao">Não</option>'+
+                               '</select>'+
+                               '<div id="despedimentoExtraContainer"></div>';
+      } else if(tipo === "meses"){
+         container.innerHTML = '<label for="mesesDespedimentoMeses">Meses restantes:</label>'+
+                               '<input type="number" id="mesesDespedimentoMeses" placeholder="Insira os meses restantes">';
+      }
+    }
+    
+    function renderDespedimentoExtra(){
+      var sel = document.getElementById("mesesAdicionaisDespedimento").value;
+      var container = document.getElementById("despedimentoExtraContainer");
+      container.innerHTML = "";
+      if(sel === "sim"){
+         container.innerHTML = '<label for="mesesDespedimentoExtra">Meses adicionais:</label>'+
+                               '<input type="number" id="mesesDespedimentoExtra" placeholder="Meses adicionais">';
+      }
+    }
+    
+    /* ================================
+       Funções de Cálculo
+       ================================ */
+    function calculateWorkerTI() {
+      var trabalhouAno = document.getElementById("trabalhouAnoWorker").value;
+      var salario = parseFloat(document.getElementById("salarioWorker").value);
+      var result;
+      if(trabalhouAno === "sim"){
+         var anos = parseFloat(document.getElementById("anosWorker").value) || 0;
+         var extraMonths = 0;
+         var extraOption = document.getElementById("mesesAdicionaisWorker").value;
+         if(extraOption === "sim"){
+             extraMonths = parseFloat(document.getElementById("mesesExtrasWorker").value) || 0;
+         }
+         var baseYears = anos + extraMonths/12;
+         var base = (salario/30) * 45 * baseYears;
+         var ferias = 0;
+         var feriasOption = document.getElementById("feriasWorker").value;
+         if(feriasOption === "sim"){
+             var diasFerias = parseFloat(document.getElementById("diasFeriasWorker").value) || 0;
+             ferias = (salario/30) * diasFerias;
+         }
+         result = base + ferias;
+      } else {
+         var meses = parseFloat(document.getElementById("mesesWorkerMenorAno").value) || 0;
+         result = (salario/30) * 45 * (meses/12);
+      }
+      document.getElementById("resultado").innerHTML = "Indemnização: " + result.toFixed(2);
+    }
+    
+    function calculateWorkerTP() {
+      var salario = parseFloat(document.getElementById("salarioWorkerTP").value);
+      var tempoTipo = document.getElementById("tempoTipoWorkerTP").value;
+      var result;
+      if(tempoTipo === "anos"){
+         var anos = parseFloat(document.getElementById("anosWorkerTP").value) || 0;
+         var extra = 0;
+         var extraOption = document.getElementById("mesesAdicionaisWorkerTP").value;
+         if(extraOption === "sim"){
+             extra = parseFloat(document.getElementById("mesesWorkerTPExtra").value) || 0;
+         }
+         result = salario * (anos + extra/12);
+      } else if(tempoTipo === "meses"){
+         var meses = parseFloat(document.getElementById("mesesWorkerTPMeses").value) || 0;
+         result = salario * (meses/12);
+      }
+      document.getElementById("resultado").innerHTML = "Indemnização: " + result.toFixed(2);
+    }
+    
+    function calculateEmpTI() {
+      var salarioMin = parseFloat(document.getElementById("salarioMinimoEmp").value);
+      var salario = parseFloat(document.getElementById("salarioEmpTI").value);
+      var ratio = salario / salarioMin;
+      var factor;
+      if(ratio >= 1 && ratio <= 7){ 
+        factor = 1; 
+      } else if(ratio >= 8 && ratio <= 18){ 
+        factor = 15/30; 
+      } else if(ratio > 18){ 
+        factor = 5/30; 
+      }
+      var trabalhouAno = document.getElementById("trabalhouAnoEmp").value;
+      var result;
+      if(trabalhouAno === "sim"){
+         var anos = parseFloat(document.getElementById("anosEmp").value) || 0;
+         var extra = 0;
+         var extraOption = document.getElementById("mesesAdicionaisEmp").value;
+         if(extraOption === "sim"){
+             extra = parseFloat(document.getElementById("mesesEmpExtra").value) || 0;
+         }
+         result = salario * factor * (anos + extra/12);
+      } else {
+         var meses = parseFloat(document.getElementById("mesesEmpMenorAno").value) || 0;
+         result = salario * factor * (meses/12);
+      }
+      document.getElementById("resultado").innerHTML = "Indemnização: " + result.toFixed(2);
+    }
+    
+    function calculateEmpTP() {
+      var salario = parseFloat(document.getElementById("salarioEmpTP").value);
+      var tempoTipo = document.getElementById("tempoTipoEmpTP").value;
+      var result;
+      if(tempoTipo === "anos"){
+         var anos = parseFloat(document.getElementById("anosEmpTP").value) || 0;
+         var extra = 0;
+         var extraOption = document.getElementById("mesesAdicionaisEmpTP").value;
+         if(extraOption === "sim"){
+             extra = parseFloat(document.getElementById("mesesEmpTPExtra").value) || 0;
+         }
+         result = salario * (anos + extra/12);
+      } else if(tempoTipo === "meses"){
+         var meses = parseFloat(document.getElementById("mesesEmpTPMeses").value) || 0;
+         result = salario * (meses/12);
+      }
+      document.getElementById("resultado").innerHTML = "Indemnização: " + result.toFixed(2);
+    }
+    
+    function calculateDespedimentoIndemnizacao() {
+      var salario = parseFloat(document.getElementById("salarioDespedimento").value);
+      var tempoTipo = document.getElementById("tempoTipoDespedimento").value;
+      var result;
+      if(tempoTipo === "anos"){
+         var anos = parseFloat(document.getElementById("anosDespedimento").value) || 0;
+         var extra = 0;
+         var extraOption = document.getElementById("mesesAdicionaisDespedimento").value;
+         if(extraOption === "sim"){
+             extra = parseFloat(document.getElementById("mesesDespedimentoExtra").value) || 0;
+         }
+         result = salario * (anos + extra/12);
+      } else if(tempoTipo === "meses"){
+         var meses = parseFloat(document.getElementById("mesesDespedimentoMeses").value) || 0;
+         result = salario * (meses/12);
+      }
+      document.getElementById("resultado").innerHTML = "Indemnização: " + result.toFixed(2);
+    }
+    
+    function calculateReintegracao() {
+      var salario = parseFloat(document.getElementById("salarioReintegracao").value);
+      var tempo = parseFloat(document.getElementById("tempoDespedimentoReintegracao").value) || 0;
+      var result;
+      if(tempo >= 6){
+         result = salario * 6;
+      } else {
+         result = salario * tempo;
+      }
+      document.getElementById("resultado").innerHTML = "Indemnização/Reintegração: " + result.toFixed(2);
+    }
+  </script>
+</body>
+</html>
